@@ -1,4 +1,4 @@
-namespace Sample
+namespace Sample.Models.Rough
 {
     public class WeatherForecast
     {

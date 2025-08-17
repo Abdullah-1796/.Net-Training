@@ -6,6 +6,6 @@
         public int cid { get; set; }
         public int rid { get; set; }
         public string? CheckIn { get; set; }
-        public string? CheckOut { get; set; }
+        public string? CheckOut { get; set; } = null;
     }
 }

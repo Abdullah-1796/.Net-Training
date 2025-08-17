@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Sample.Models;
+using Sample.Models.Rough;
 
 var builder = WebApplication.CreateBuilder(args);
 

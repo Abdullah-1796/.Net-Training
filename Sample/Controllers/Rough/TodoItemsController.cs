@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Sample.Models;
+using Sample.Models.Rough;
 
-namespace Sample.Controllers
+namespace Sample.Controllers.Rough
 {
     [Route("api/[controller]")]
     [ApiController]

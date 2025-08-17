@@ -1,4 +1,4 @@
-﻿namespace Sample.Models;
+﻿namespace Sample.Models.Rough;
 
 public class TodoItem
 {

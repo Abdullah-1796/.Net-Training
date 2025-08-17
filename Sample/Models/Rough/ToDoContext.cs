@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Sample.Models;
 
-namespace Sample.Models;
+namespace Sample.Models.Rough;
 
 public class TodoContext : DbContext
 {

@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
+using Sample.Models.Rough;
 
-namespace Sample.Controllers
+namespace Sample.Controllers.Rough
 {
     [ApiController]
     [Route("weatherforecast")]
