@@ -1,0 +1,49 @@
+@Sample_HostAddress = https://localhost:4000
+
+GET {{Sample_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+POST {{Sample_HostAddress}}/api/todoitems
+Content-Type: application/json
+
+{
+  "name": "walk dog",
+  "isComplete": true
+}
+
+###
+
+GET {{Sample_HostAddress}}/api/todoitems
+
+###
+
+@id=1
+GET {{Sample_HostAddress}}/api/todoitems/{{id}}
+
+###
+
+PUT {{Sample_HostAddress}}/api/todoitems/{{id}}
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "feed fish",
+  "isComplete": false
+}
+
+###
+
+POST {{Sample_HostAddress}}/hms/employee
+Content-Type: application/json
+
+{
+  "cnic": "3520160501549",
+    "name": "Abdullah Zahid",
+    "phone": "03227888444",
+    "email": "e@gmail.com",
+    "role": "Front Desk"
+}
+
+###
