@@ -4,13 +4,13 @@ using Sample.Models.Hotel_Management_System;
 
 namespace Sample.Controllers.Hotel_Management_System
 {
-    [Route("hms/[controller]")]
+    [Route("api/v1/bookings")]
     [ApiController]
     public class BookingController : ControllerBase
     {
         private readonly string connectionString = "Host=localhost; Port=5432;  Database=Training; Username=postgres; Password=123456789";
 
-        [HttpPost("addbooking/{roomno}")]
+        [HttpPost("{roomno}")]
         public IActionResult AddBooking(int roomno, string cnic, [FromBody] DateOnly checkinDate)
         {
             if (string.IsNullOrEmpty(cnic))
@@ -74,7 +74,7 @@ namespace Sample.Controllers.Hotel_Management_System
 
         }
 
-        [HttpPost("endbooking/{roomno}")]
+        [HttpPost("{roomno}/endbooking")]
         public IActionResult EndBooking(int roomno, string cnic, [FromBody] DateOnly checkoutDate)
         {
             if (checkoutDate == default)
@@ -136,7 +136,7 @@ namespace Sample.Controllers.Hotel_Management_System
             }
         }
 
-        [HttpGet("getbookingdetails/{cnic}")]
+        [HttpGet("{cnic}")]
         public IActionResult GetBookingDetails(string cnic)
         {
             if (string.IsNullOrEmpty(cnic))
@@ -159,7 +159,7 @@ namespace Sample.Controllers.Hotel_Management_System
                 int cid = data.GetInt32(data.GetOrdinal("cid"));
                 data.Close();
                 //getting booking details
-                NpgsqlCommand cmd1 = new NpgsqlCommand("select * from (SELECT * FROM booking b inner join (select * from customer where cnic = @cnic) c on b.cid = c.cid) d inner join room r on d.rid = r.rid where status = 'Available';", conn);
+                NpgsqlCommand cmd1 = new NpgsqlCommand("select * from (SELECT * FROM booking b inner join (select * from customer where cnic = @cnic) c on b.cid = c.cid) d inner join room r on d.rid = r.rid where status = 'Occupied';", conn);
                 cmd1.Parameters.AddWithValue("cnic", cnic);
                 data = cmd1.ExecuteReader();
                 if (!data.Read())
