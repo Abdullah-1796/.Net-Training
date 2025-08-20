@@ -41,7 +41,7 @@ namespace EF_Core.Controllers
         [HttpGet("{cnic}", Name = "GetCustomerByCnic")]
         public async Task<ActionResult<Customer>> GetCustomerByCnic(string cnic)
         {
-            var customer = await _customerService.GetCustomerByCnicAsync(cnic);            
+            var customer = await _customerService.GetCustomerByCnicAsync(cnic);
             if (customer == null)
             {
                 return NotFound($"Customer with CNIC {cnic} not found.");
