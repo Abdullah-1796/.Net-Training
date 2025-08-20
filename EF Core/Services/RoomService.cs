@@ -1,4 +1,5 @@
-﻿using EF_Core.DTOs;
+﻿using AutoMapper;
+using EF_Core.DTOs;
 using EF_Core.Models;
 using EF_Core.Repositories.Interfaces;
 using EF_Core.Services.Interfaces;
@@ -8,10 +9,12 @@ namespace EF_Core.Services
     public class RoomService : IRoomService
     {
         private readonly IRoomRepository _roomRepository;
+        private readonly IMapper _mapper;
 
-        public RoomService(IRoomRepository roomRepository)
+        public RoomService(IRoomRepository roomRepository, IMapper mapper)
         {
             _roomRepository = roomRepository;
+            _mapper = mapper;
         }
 
         public async Task<RoomDTO?> CreateRoomAsync(RoomDTO roomDto)
@@ -20,19 +23,10 @@ namespace EF_Core.Services
             {
                 return null;
             }
-            Room room = new Room
-            {
-                RoomNo = roomDto.RoomNo,
-                Capacity = roomDto.Capacity,
-                Status = roomDto.Status
-            };
+            Room room = _mapper.Map<Room>(roomDto);
             var createdRoom = await _roomRepository.CreateRoomAsync(room);
-            return new RoomDTO
-            {
-                RoomNo = createdRoom.RoomNo,
-                Capacity = createdRoom.Capacity,
-                Status = createdRoom.Status
-            };
+            RoomDTO roomDTO = _mapper.Map<RoomDTO>(createdRoom);
+            return roomDTO;
         }
 
         public Task<bool> DeleteRoomAsync(int roomNo)
@@ -43,23 +37,15 @@ namespace EF_Core.Services
         public async Task<IEnumerable<RoomDTO>> GetAllRoomsAsync(int limit = 2, int offset = 0)
         {
             var rooms = await _roomRepository.GetAllRoomsAsync(limit, offset);
-            return rooms.Select(r => new RoomDTO
-            {
-                RoomNo = r.RoomNo,
-                Capacity = r.Capacity,
-                Status = r.Status
-            });
+            var roomDtos = _mapper.Map<IEnumerable<RoomDTO>>(rooms);
+            return roomDtos;
         }
 
         public async Task<IEnumerable<RoomDTO>> GetAvailableRoomsAsync(int capacity)
         {
             var availableRooms = await _roomRepository.GetAvailableRoomsAsync(capacity);
-            return availableRooms.Select(r => new RoomDTO
-            {
-                RoomNo = r.RoomNo,
-                Capacity = r.Capacity,
-                Status = r.Status
-            });
+            var roomDtos = _mapper.Map<IEnumerable<RoomDTO>>(availableRooms);
+            return roomDtos;
         }
 
         public async Task<RoomDTO?> GetRoomByRoomNo(int roomNo)
@@ -69,12 +55,8 @@ namespace EF_Core.Services
             {
                 return null;
             }
-            return new RoomDTO
-            {
-                RoomNo = room.RoomNo,
-                Capacity = room.Capacity,
-                Status = room.Status
-            };
+            RoomDTO roomDto = _mapper.Map<RoomDTO>(room);
+            return roomDto;
         }
 
         public Task<bool> UpdateRoomStatusAsync(int roomNo, string status)

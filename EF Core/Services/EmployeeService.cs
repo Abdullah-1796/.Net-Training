@@ -4,16 +4,19 @@ using EF_Core.Repositories.Interfaces;
 using EF_Core.Services.Interfaces;
 using EF_Core.DTOs.For_Patch;
 using Microsoft.AspNetCore.Http.HttpResults;
+using AutoMapper;
 
 namespace EF_Core.Services
 {
     public class EmployeeService : IEmployeeService
     {
         private IEmployeeRepository employeeRepository;
+        private readonly IMapper _mapper;
 
-        public EmployeeService(IEmployeeRepository employeeRepository)
+        public EmployeeService(IEmployeeRepository employeeRepository, IMapper mapper)
         {
             this.employeeRepository = employeeRepository;
+            _mapper = mapper;
         }
         async Task<EmployeeDTO?> IEmployeeService.AddEmployeeAsync(EmployeeDTO employeeDto)
         {
@@ -21,23 +24,27 @@ namespace EF_Core.Services
             {
                 return null;
             }
-            Employee employee = new Employee
-            {
-                Cnic = employeeDto.Cnic,
-                Name = employeeDto.Name,
-                Phone = employeeDto.Phone,
-                Email = employeeDto.Email,
-                Role = employeeDto.Role
-            };
+            //Employee employee = new Employee
+            //{
+            //    Cnic = employeeDto.Cnic,
+            //    Name = employeeDto.Name,
+            //    Phone = employeeDto.Phone,
+            //    Email = employeeDto.Email,
+            //    Role = employeeDto.Role
+            //};
+            Employee employee = _mapper.Map<Employee>(employeeDto);
             var emp = await employeeRepository.AddEmployeeAsync(employee);
-            return new EmployeeDTO
-            {
-                Cnic = emp.Cnic,
-                Name = emp.Name,
-                Phone = emp.Phone,
-                Email = emp.Email,
-                Role = emp.Role
-            };
+            //return new EmployeeDTO
+            //{
+            //    Cnic = emp.Cnic,
+            //    Name = emp.Name,
+            //    Phone = emp.Phone,
+            //    Email = emp.Email,
+            //    Role = emp.Role
+            //};
+
+            var employeeDto1 = _mapper.Map<EmployeeDTO>(employee);
+            return employeeDto1;
         }
 
         async Task<bool> IEmployeeService.DeleteEmployeeAsync(string cnic)
@@ -48,14 +55,15 @@ namespace EF_Core.Services
         async Task<IEnumerable<EmployeeDTO?>> IEmployeeService.GetAllEmployeesAsync(int limit = 2, int offset = 0)
         {
             var employees = await employeeRepository.GetAllEmployeesAsync(limit, offset);
-            var employeeDtos = employees.Select(emp => new EmployeeDTO
-            {
-                Cnic = emp.Cnic,
-                Name = emp.Name,
-                Phone = emp.Phone,
-                Email = emp.Email,
-                Role = emp.Role
-            });
+            //var employeeDtos = employees.Select(emp => new EmployeeDTO
+            //{
+            //    Cnic = emp.Cnic,
+            //    Name = emp.Name,
+            //    Phone = emp.Phone,
+            //    Email = emp.Email,
+            //    Role = emp.Role
+            //});
+            var employeeDtos = _mapper.Map<IEnumerable<EmployeeDTO>>(employees);
             return employeeDtos;
         }
 
@@ -66,14 +74,7 @@ namespace EF_Core.Services
             {
                 return null; // Employee not found
             }
-            EmployeeDTO employeeDto = new EmployeeDTO
-            {
-                Cnic = employee.Cnic,
-                Name = employee.Name,
-                Phone = employee.Phone,
-                Email = employee.Email,
-                Role = employee.Role
-            };
+            var employeeDto = _mapper.Map<EmployeeDTO>(employee);
             return employeeDto;
         }
 
@@ -89,14 +90,8 @@ namespace EF_Core.Services
             existingEmployee.Role = employeePdto.Role ?? existingEmployee.Role;
 
             var updatedEmployee = await employeeRepository.UpdateEmployeeAsync(existingEmployee);
-            return new EmployeeDTO
-            {
-                Cnic = updatedEmployee.Cnic,
-                Name = updatedEmployee.Name,
-                Phone = updatedEmployee.Phone,
-                Email = updatedEmployee.Email,
-                Role = updatedEmployee.Role
-            };
+            var employeeDto = _mapper.Map<EmployeeDTO>(updatedEmployee);
+            return employeeDto;
         }
     }
 }

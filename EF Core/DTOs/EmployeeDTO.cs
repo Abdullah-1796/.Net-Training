@@ -5,7 +5,9 @@ namespace EF_Core.DTOs
 {
     public class EmployeeDTO
     {
-        public Guid EmployeeId { get; set; } = Guid.NewGuid();
+        /// <summary>
+        //public Guid EmployeeId { get; set; } = Guid.NewGuid();
+        /// </summary>
 
         public required string Cnic { get; set; }
 

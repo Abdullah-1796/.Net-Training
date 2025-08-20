@@ -1,3 +1,4 @@
+using EF_Core.Mapping_Profiles;
 using EF_Core.Repositories;
 using EF_Core.Repositories.Interfaces;
 using EF_Core.Services;
@@ -26,6 +27,11 @@ builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 
+// Register Automappers
+builder.Services.AddAutoMapper(typeof(EmployeeMappingProfile));
+builder.Services.AddAutoMapper(typeof(CustomerMappingProfile));
+builder.Services.AddAutoMapper(typeof(RoomMappingProfile));
+builder.Services.AddAutoMapper(typeof(BookingMappingProfile));
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

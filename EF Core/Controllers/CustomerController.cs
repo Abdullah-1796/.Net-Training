@@ -7,6 +7,7 @@ using YourNamespace.Data;
 using Microsoft.EntityFrameworkCore;
 using EF_Core.Services.Interfaces;
 using EF_Core.DTOs.For_Patch;
+using AutoMapper;
 
 namespace EF_Core.Controllers
 {
@@ -14,7 +15,7 @@ namespace EF_Core.Controllers
     [ApiController]
     public class CustomerController : ControllerBase
     {
-        private ICustomerService _customerService;
+        private readonly ICustomerService _customerService;
 
         public CustomerController(ICustomerService customerService)
         {
