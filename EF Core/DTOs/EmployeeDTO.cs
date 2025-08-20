@@ -5,16 +5,19 @@ namespace EF_Core.DTOs
 {
     public class EmployeeDTO
     {
-        public Guid EmployeeId { get; set; } = Guid.NewGuid();
-
+        [Required]
         public required string Cnic { get; set; }
 
-        public string? Name { get; set; }
+        [Required]
+        public required string Name { get; set; }
 
-        public string? Phone { get; set; }
+        [Required]
+        public required string Phone { get; set; }
 
-        public string? Email { get; set; }
+        [Required]
+        public required string Email { get; set; }
 
-        public string? Role { get; set; }
+        [Required]
+        public required string Role { get; set; }
     }
 }

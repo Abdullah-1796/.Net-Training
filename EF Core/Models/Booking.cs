@@ -11,13 +11,13 @@ namespace EF_Core.Models
         public Guid BookingId { get; set; } = Guid.NewGuid();
 
         [Column("customerid")]
-        public Guid CustomerId { get; set; }
+        public required Guid CustomerId { get; set; }
 
         [Column("roomid")]
-        public Guid RoomId { get; set; }
+        public required Guid RoomId { get; set; }
 
         [Column("checkin")]
-        public DateOnly CheckIn { get; set; }
+        public required DateOnly CheckIn { get; set; }
 
         [Column("checkout")]
         public DateOnly CheckOut { get; set; }

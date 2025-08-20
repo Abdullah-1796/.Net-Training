@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using YourNamespace.Data;
 using Microsoft.EntityFrameworkCore;
+using EF_Core.Services.Interfaces;
+using EF_Core.DTOs.For_Patch;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace EF_Core.Controllers
 {
@@ -11,38 +14,43 @@ namespace EF_Core.Controllers
     [ApiController]
     public class EmployeeController : ControllerBase
     {
-        private AppDbContext context;
+        private IEmployeeService employeeService;
 
-        public EmployeeController(AppDbContext appDbContext)
+        public EmployeeController(IEmployeeService employeeService)
         {
-            context = appDbContext;
+            this.employeeService = employeeService;
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateEmployee([FromBody] Employee employee)
+        public async Task<IActionResult> CreateEmployee([FromBody] EmployeeDTO employee)
         {
-            if (employee == null)
+            var emp = await employeeService.AddEmployeeAsync(employee);
+            if (emp == null)
             {
-                return BadRequest("Employee data is required.");
+                return BadRequest($"Employee with CNIC {employee.Cnic} already exists.");
             }
-            
-            context.Employees.Add(employee);
-            await context.SaveChangesAsync();
-            return CreatedAtAction(nameof(CreateEmployee), new { id = employee.EmployeeId }, employee);
+            return CreatedAtAction("GetEmployeeByCnic", new { cnic = emp.Cnic }, emp);
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Employee>> GetEmployees(int limit = 2, int offset = 0)
+        public async Task<ActionResult<IEnumerable<Employee>>> GetAllEmployees(int limit = 2, int offset = 0)
         {
-            var employees = context.Employees.ToList().Take(limit).Skip(offset);
+            var employees = await employeeService.GetAllEmployeesAsync(limit, offset);
+            if(employees == null)
+                {
+                return NotFound("No employees found.");
+            }
             return Ok(employees);
         }
 
-        [HttpGet("{cnic}")]
-        public ActionResult<Employee> GetEmployeeByCnic(string cnic)
+        [HttpGet("{cnic}", Name ="GetEmployeeByCnic")]
+        public async Task<ActionResult<Employee>> GetEmployeeByCnic(string cnic)
         {
-            Employee? employee = context.Employees.FirstOrDefault(e => e.Cnic == cnic);
-            
+            if(string.IsNullOrEmpty(cnic))
+            {
+                return BadRequest("Employee CNIC is required.");
+            }
+            var employee = await employeeService.GetEmployeeByCnicAsync(cnic);            
             if (employee == null)
             {
                 return NotFound($"Employee with CNIC {cnic} not found.");
@@ -51,24 +59,18 @@ namespace EF_Core.Controllers
         }
 
         [HttpPatch]
-        public async Task<IActionResult> UpdateEmployee([FromBody] EmployeeDTO employee)
+        public async Task<IActionResult> UpdateEmployee([FromBody] EmployeePDTO employeePdto)
         {
-            if (employee == null)
+            if (employeePdto == null)
             {
                 return BadRequest("Employee data is required.");
             }
-            var existingEmployee = await context.Employees.FirstOrDefaultAsync(e => e.Cnic == employee.Cnic);
-            if (existingEmployee == null)
+            var updatedEmployee = await employeeService.UpdateEmployeeAsync(employeePdto);
+            if (updatedEmployee == null)
             {
-                return NotFound($"Employee with ID {employee.EmployeeId} not found.");
+                return NotFound($"Employee with cnic {employeePdto.Cnic} not found.");
             }
-
-            existingEmployee.Name = employee.Name ?? existingEmployee.Name;
-            existingEmployee.Phone = employee.Phone ?? existingEmployee.Phone;
-            existingEmployee.Email = employee.Email ?? existingEmployee.Email;
-            existingEmployee.Role = employee.Role ?? existingEmployee.Role;
-            await context.SaveChangesAsync();
-            return NoContent();
+            return Ok(updatedEmployee);
         }
 
         [HttpDelete("cnic")]
@@ -76,16 +78,14 @@ namespace EF_Core.Controllers
         {
             if (cnic == null)
             {
-                return BadRequest("Employee data is required.");
+                return BadRequest("Employee cnic is required.");
             }
-            var existingEmployee = await context.Employees.FirstOrDefaultAsync(e => e.Cnic == cnic);
-            if (existingEmployee == null)
+            var isDeleted = await employeeService.DeleteEmployeeAsync(cnic);
+            if(!isDeleted)
             {
                 return NotFound($"Employee with cnic {cnic} not found.");
             }
-            context.Employees.Remove(existingEmployee);
-            await context.SaveChangesAsync();
-            return NoContent();
+            return Ok($"Employee with cnic {cnic} deleted successfully.");
         }
     }
 }

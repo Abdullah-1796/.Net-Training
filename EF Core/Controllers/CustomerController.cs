@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using YourNamespace.Data;
 using Microsoft.EntityFrameworkCore;
+using EF_Core.Services.Interfaces;
+using EF_Core.DTOs.For_Patch;
 
 namespace EF_Core.Controllers
 {
@@ -11,38 +13,35 @@ namespace EF_Core.Controllers
     [ApiController]
     public class CustomerController : ControllerBase
     {
-        private AppDbContext context;
-        public CustomerController(AppDbContext appDbContext)
+        private ICustomerService _customerService;
+
+        public CustomerController(ICustomerService customerService)
         {
-            context = appDbContext;
+            _customerService = customerService;
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCustomer([FromBody] Customer customer)
+        public async Task<IActionResult> CreateCustomer([FromBody] CustomerDTO customerDto)
         {
+            var customer = await _customerService.AddCustomerAsync(customerDto);
             if (customer == null)
             {
-                return BadRequest("Customer data is required.");
+                return BadRequest($"Customer with CNIC {customerDto.Cnic} already exists.");
             }
-            
-            context.Customers.Add(customer);
-            await context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(CreateCustomer), new { id = customer.CustomerId }, customer);
+            return CreatedAtAction("GetCustomerByCnic", new { cnic = customer.Cnic }, customer);
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Customer>> GetAllCustomers(int limit = 2, int offset = 0)
+        public async Task<ActionResult<IEnumerable<Customer>>> GetAllCustomers(int limit = 2, int offset = 0)
         {
-            var customers = context.Customers.OrderBy(c => c.CustomerId).ToList().Take(limit).Skip(offset);
+            var customers = await _customerService.GetAllCustomerAsync(limit, offset);
             return Ok(customers);
         }
 
-        [HttpGet("{cnic}")]
-        public ActionResult<Customer> GetCustomerById(string cnic)
+        [HttpGet("{cnic}", Name = "GetCustomerByCnic")]
+        public async Task<ActionResult<Customer>> GetCustomerByCnic(string cnic)
         {
-            Customer? customer = context.Customers.Where(c => c.Cnic == cnic).FirstOrDefault();
-            
+            var customer = await _customerService.GetCustomerByCnicAsync(cnic);            
             if (customer == null)
             {
                 return NotFound($"Customer with CNIC {cnic} not found.");
@@ -51,35 +50,30 @@ namespace EF_Core.Controllers
         }
 
         [HttpPatch]
-        public async Task<IActionResult> UpdateCustomer([FromBody] CustomerDTO customer)
+        public async Task<IActionResult> UpdateCustomer([FromBody] CustomerPDTO customerPdto)
         {
-            if (customer == null)
+            if (customerPdto == null)
             {
                 return BadRequest("Customer data is required.");
             }
-            var existingCustomer = await context.Customers.FirstOrDefaultAsync(c => c.Cnic == customer.Cnic);
+            var existingCustomer = await _customerService.UpdateCustomerAsync(customerPdto);
             if (existingCustomer == null)
             {
-                return NotFound($"Customer with ID {customer.CustomerId} not found.");
+                return NotFound($"Customer with Cnic {customerPdto.Cnic} not found.");
             }
-            existingCustomer.Name = customer.Name ?? existingCustomer.Name;
-            existingCustomer.Phone = customer.Phone ?? existingCustomer.Phone;
-            existingCustomer.Email = customer.Email ?? existingCustomer.Email;
-            await context.SaveChangesAsync();
-            return NoContent();
+
+            return Ok(existingCustomer);
         }
 
         [HttpDelete("{cnic}")]
         public async Task<IActionResult> DeleteCustomer(string cnic)
         {
-            var customer = await context.Customers.FirstOrDefaultAsync(c => c.Cnic == cnic);
-            if (customer == null)
+            var customer = await _customerService.DeleteCustomerAsync(cnic);
+            if (!customer)
             {
                 return NotFound($"Customer with CNIC {cnic} not found.");
             }
-            context.Customers.Remove(customer);
-            await context.SaveChangesAsync();
-            return NoContent();
+            return Ok($"Customer with cnic {cnic} deleted successfully.");
         }
     }
 }
