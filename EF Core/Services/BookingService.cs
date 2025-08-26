@@ -18,20 +18,26 @@ namespace EF_Core.Services
             _roomRepository = roomRepository;
             _customerRepository = customerRepository;
         }
-        public async Task<bool> CreateBookingAsync(int roomno, string cnic, [FromBody] DateOnly checkinDate)
+        public async Task<bool> CreateBookingAsync([FromBody] BookingRequest bookingRequest)
         {
             //Room validation
-            var room = await _roomRepository.GetRoomByRoomNo(roomno);
+            var room = await _roomRepository.GetRoomByRoomNo(bookingRequest.RoomNo);
             if (room == null || room.Status != "Available")
             {
-                throw new ArgumentException($"Room {roomno} is not available for booking.");
+                throw new ArgumentException($"Room {bookingRequest.RoomNo} is not available for booking.");
             }
 
             //Customer validation
-            var customer = await _customerRepository.GetCustomerByCnicAsync(cnic);
+            var customer = await _customerRepository.GetCustomerByCnicAsync(bookingRequest.Cnic);
             if (customer == null)
             {
-                throw new ArgumentException($"Customer with CNIC {cnic} not found.");
+                throw new ArgumentException($"Customer with CNIC {bookingRequest.Cnic} not found.");
+            }
+
+            //Date validation
+            if (bookingRequest.date < DateOnly.FromDateTime(DateTime.Now))
+            {
+                throw new ArgumentException("Check-in date cannot be in the past.");
             }
 
 
@@ -39,37 +45,43 @@ namespace EF_Core.Services
             {
                 RoomId = room.RoomId,
                 CustomerId = customer.CustomerId,
-                CheckIn = checkinDate
+                CheckIn = bookingRequest.date
             };
-            await _roomRepository.UpdateRoomStatusAsync(roomno, "Occupied");
+            await _roomRepository.UpdateRoomStatusAsync(bookingRequest.RoomNo, "Occupied");
             return await _bookingRepository.CreateBookingAsync(booking);
         }
 
-        public async Task<bool> EndBookingAsync(int roomno, string cnic, [FromBody] DateOnly checkoutdate)
+        public async Task<bool> EndBookingAsync([FromBody] BookingRequest bookingRequest)
         {
             //Room validation
-            var room = await _roomRepository.GetRoomByRoomNo(roomno);
+            var room = await _roomRepository.GetRoomByRoomNo(bookingRequest.RoomNo);
             if (room != null && room.Status != "Occupied")
             {
-                throw new ArgumentException($"Room {roomno} is not available for booking.");
+                throw new ArgumentException($"Room {bookingRequest.RoomNo} is not available for booking.");
             }
 
             //Customer validation
-            var customer = await _customerRepository.GetCustomerByCnicAsync(cnic);
+            var customer = await _customerRepository.GetCustomerByCnicAsync(bookingRequest.Cnic);
             if (customer == null)
             {
-                throw new ArgumentException($"Customer with CNIC {cnic} not found.");
+                throw new ArgumentException($"Customer with CNIC {bookingRequest.Cnic} not found.");
             }
 
             //Booking validation
             var booking = await _bookingRepository.GetBookingAsync(room.RoomId, customer.CustomerId);
             if (booking == null)
             {
-                throw new ArgumentException($"No booking found for room {roomno} and customer with CNIC {cnic}.");
+                throw new ArgumentException($"No booking found for room {bookingRequest.RoomNo} and customer with CNIC {bookingRequest.Cnic}.");
             }
 
-            booking.CheckOut = checkoutdate;
-            await _roomRepository.UpdateRoomStatusAsync(roomno, "Available");
+            //Date validation
+            if (bookingRequest.date < booking.CheckIn)
+            {
+                throw new ArgumentException("Check-out date cannot be before check-in date.");
+            }
+
+            booking.CheckOut = bookingRequest.date;
+            await _roomRepository.UpdateRoomStatusAsync(bookingRequest.RoomNo, "Available");
             return await _bookingRepository.EndBookingAsync(booking);
         }
 

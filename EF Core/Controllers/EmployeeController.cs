@@ -1,13 +1,9 @@
 ﻿
 using EF_Core.Models;
 using EF_Core.DTOs;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using YourNamespace.Data;
-using Microsoft.EntityFrameworkCore;
 using EF_Core.Services.Interfaces;
 using EF_Core.DTOs.For_Patch;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace EF_Core.Controllers
 {

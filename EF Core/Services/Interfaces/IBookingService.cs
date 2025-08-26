@@ -5,8 +5,8 @@ namespace EF_Core.Services.Interfaces
 {
     public interface IBookingService
     {
-        Task<bool> CreateBookingAsync(int roomno, string cnic, [FromBody] DateOnly checkinDate);
-        Task<bool> EndBookingAsync(int roomno, string cnic, [FromBody] DateOnly checkoutdate);
+        Task<bool> CreateBookingAsync([FromBody] BookingRequest bookingRequest);
+        Task<bool> EndBookingAsync([FromBody] BookingRequest bookingRequest);
         Task<IEnumerable<BookingDTO>> GetBookingsByCnicAsync(string cnic);
     }
 }

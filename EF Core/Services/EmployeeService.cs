@@ -3,7 +3,6 @@ using EF_Core.Models;
 using EF_Core.Repositories.Interfaces;
 using EF_Core.Services.Interfaces;
 using EF_Core.DTOs.For_Patch;
-using Microsoft.AspNetCore.Http.HttpResults;
 using AutoMapper;
 
 namespace EF_Core.Services

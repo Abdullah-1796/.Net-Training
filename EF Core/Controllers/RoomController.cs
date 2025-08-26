@@ -1,13 +1,8 @@
-﻿
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using EF_Core.Models;
 using EF_Core.DTOs;
-using System.Runtime.CompilerServices;
-using YourNamespace.Data;
-using Microsoft.EntityFrameworkCore;
 using EF_Core.Services.Interfaces;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EF_Core.Controllers
 {
@@ -22,6 +17,7 @@ namespace EF_Core.Controllers
             _roomService = roomService;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateRoom([FromBody] RoomDTO room)
         {
@@ -33,6 +29,7 @@ namespace EF_Core.Controllers
             return CreatedAtAction("GetRoomByRoomNo", new { roomno = room.RoomNo }, room);
         }
 
+        [Authorize]
         [HttpGet("{roomno}", Name = "GetRoomByRoomNo")]
         public async Task<ActionResult<RoomDTO>> GetRoomByRoomNo(int roomno)
         {
@@ -44,6 +41,7 @@ namespace EF_Core.Controllers
             return Ok(room);
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Room>>> GetAllRooms(int limit = 2, int offset = 0)
         {
@@ -51,6 +49,7 @@ namespace EF_Core.Controllers
             return Ok(rooms);
         }
 
+        [Authorize]
         [HttpGet("availablerooms{capacity}")]
         public async Task<ActionResult<IEnumerable<Room>>> GetAvailableRooms(int capacity)
         {
@@ -62,6 +61,7 @@ namespace EF_Core.Controllers
             return Ok(availableRooms);
         }
 
+        [Authorize]
         [HttpPost("checkin{roomno}")]
         public async Task<IActionResult> CheckInRoom(int roomno)
         {
@@ -73,6 +73,7 @@ namespace EF_Core.Controllers
             return Ok(new { message = "Room Reserved Successfully" });
         }
 
+        [Authorize]
         [HttpPost("checkout{roomno}")]
         public async Task<IActionResult> CheckOutRoom(int roomno)
         {

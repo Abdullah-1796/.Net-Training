@@ -1,9 +1,11 @@
 ﻿// Data/AppDbContext.cs
 using EF_Core.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 namespace YourNamespace.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -13,6 +15,13 @@ public class AppDbContext : DbContext
     public DbSet<Employee> Employees { get; set; }
 
     protected override void OnModelCreating(ModelBuilder mb)
+    {
+        base.OnModelCreating(mb);
+        ConfigureCustomEntities(mb);
+        ConfigureIdentity(mb);
+    }
+
+    private void ConfigureCustomEntities(ModelBuilder mb)
     {
         // Ensure pgcrypto for gen_random_uuid() (we'll create it in a migration step)
         // Keys + default UUIDs
@@ -77,4 +86,41 @@ public class AppDbContext : DbContext
             new Room { RoomId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), RoomNo = 102, Capacity = 4, Status = "Available" }
         );
     }
+
+    private void ConfigureIdentity(ModelBuilder mb)
+    {
+        //Rename default identity tables
+
+        // Identity configuration
+        mb.Entity<ApplicationUser>(b =>
+        {
+            b.ToTable("users");
+            b.HasKey(u => u.Id);
+            b.Property(u => u.Id).HasDefaultValueSql("gen_random_uuid()");
+        });
+        mb.Entity<ApplicationRole>(b =>
+        {
+            b.ToTable("roles");
+            b.HasKey(r => r.Id);
+            b.Property(r => r.Id).HasDefaultValueSql("gen_random_uuid()");
+            b.Property(r => r.Description).IsRequired(false);
+        });
+        mb.Entity<IdentityUserRole<Guid>>().ToTable("userroles");
+        mb.Entity<IdentityUserClaim<Guid>>().ToTable("userclaims");
+        mb.Entity<IdentityUserLogin<Guid>>().ToTable("userlogins");
+        mb.Entity<IdentityRoleClaim<Guid>>().ToTable("roleclaims");
+        mb.Entity<IdentityUserToken<Guid>>().ToTable("usertokens");
+
+        //seed roles data
+        Guid adminRoleId = Guid.Parse("c8d89a25-4b96-4f20-9d79-7f8a54c5213d");
+        Guid managerRoleId = Guid.Parse("b92f0a3e-573b-4b12-8db1-2ccf6d58a34a");
+        Guid receptionistRoleId = Guid.Parse("d7f4a42e-1c1b-4c9f-8a50-55f6b234e8e2");
+
+        mb.Entity<ApplicationRole>().HasData(
+            new ApplicationRole { Id = adminRoleId, Name = "Admin", NormalizedName = "ADMIN", Description = "Administrator with full access" },
+            new ApplicationRole { Id = managerRoleId, Name = "Manager", NormalizedName = "MANAGER", Description = "Manager with limited access" },
+            new ApplicationRole { Id = receptionistRoleId, Name = "Receptionist", NormalizedName = "RECEPTIONIST", Description = "Receptionist with basic access" }
+        );
+    }
 }
+
