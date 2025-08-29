@@ -65,7 +65,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
             e.Property(x => x.BookingId).HasDefaultValueSql("gen_random_uuid()");
 
             // Map DateOnly to SQL 'date'
-            e.Property(x => x.CheckIn).HasColumnType("date");
+            e.Property(x => x.ExpectedCheckIn).HasColumnType("date");
             e.Property(x => x.CheckOut).HasColumnType("date");
 
             // Relationships

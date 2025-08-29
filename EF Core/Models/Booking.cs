@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EF_Core.Enumerations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EF_Core.Models
@@ -11,16 +12,23 @@ namespace EF_Core.Models
         public Guid BookingId { get; set; } = Guid.NewGuid();
 
         [Column("customerid")]
-        public Guid CustomerId { get; set; }
+        public required Guid CustomerId { get; set; }
 
         [Column("roomid")]
-        public Guid RoomId { get; set; }
+        public required Guid RoomId { get; set; }
 
-        [Column("checkin")]
-        public DateOnly CheckIn { get; set; }
+        [Column("expectedcheckin")]
+        public required DateOnly ExpectedCheckIn { get; set; }
 
         [Column("checkout")]
         public DateOnly CheckOut { get; set; }
+
+        [Column("status")]
+        public Status Status { get; set; } = Status.Booked;
+
+        [Column ("duration")]
+        [Range(1, 30, ErrorMessage = "Duration must be between 1 and 30 days.")]
+        public required int Duration { get; set; }
 
         [ForeignKey(nameof(CustomerId))]
         public Customer customer { get; set; }

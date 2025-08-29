@@ -55,6 +55,12 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
+// Register repositories
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+
 // Register services
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
@@ -64,11 +70,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// Register repositories
-builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
-builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
-builder.Services.AddScoped<IRoomRepository, RoomRepository>();
-builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+//Register Hosted services
+builder.Services.AddHostedService<CancelBookingService>();
 
 // Register Automappers
 builder.Services.AddAutoMapper(typeof(EmployeeMappingProfile));
@@ -81,6 +84,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+app.UseWebSockets();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -105,11 +109,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
 app.UseAuthentication();
-
-app.MapControllers();
+app.UseAuthorization();
 
 app.UseCustomAuthentication();
+app.UseRoleLogging();
+app.UseCustomExceptionHandler();
+app.UseWebSocketHandler();
+
+app.MapControllers();
 
 app.Run();

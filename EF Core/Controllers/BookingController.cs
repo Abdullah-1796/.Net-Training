@@ -17,7 +17,7 @@ namespace EF_Core.Controllers
         }
 
         [Authorize]
-        [HttpPost]
+        [HttpPost("new-booking")]
         public async Task<IActionResult> AddBooking([FromBody] BookingRequest bookingRequest)
         {
             var bookingCreated = await bookingService.CreateBookingAsync(bookingRequest);
@@ -25,19 +25,43 @@ namespace EF_Core.Controllers
             {
                 return BadRequest($"Booking could not be created for room {bookingRequest.RoomNo} against customer with CNIC {bookingRequest.Cnic}.");
             }
-            return Ok(new { message = "Booking created successfully", roomNo = bookingRequest.RoomNo, bookingRequest.Cnic, checkinDate = bookingRequest.date });
+            return Ok(new { message = "Booking created successfully", roomNo = bookingRequest.RoomNo, bookingRequest.Cnic, checkinDate = bookingRequest.CheckinDate });
         }
 
         [Authorize]
-        [HttpPost("endbooking")]
-        public async Task<IActionResult> EndBooking([FromBody] BookingRequest bookingRequest)
+        [HttpPatch("check-in")]
+        public async Task<IActionResult> CheckIn(CheckinRequest checkinRequest)
         {
-            var booking = await bookingService.EndBookingAsync(bookingRequest);
+            var checkedIn = await bookingService.CheckInAsync(checkinRequest);
+            if (!checkedIn)
+            {
+                return NotFound($"Check-in failed for room {checkinRequest.RoomNo} against customer with CNIC {checkinRequest.Cnic}.");
+            }
+            return Ok(new { message = "Checked In successfully", roomNo = checkinRequest.RoomNo, checkinRequest.Cnic });
+        }
+
+        [Authorize]
+        [HttpPost("end-booking")]
+        public async Task<IActionResult> EndBooking([FromBody] CheckoutRequest checkoutRequest)
+        {
+            var booking = await bookingService.EndBookingAsync(checkoutRequest);
             if (!booking)
             {
-                return NotFound($"No booking found for room {bookingRequest.RoomNo} against customer with CNIC {bookingRequest.Cnic}.");
+                return NotFound($"No booking found for room {checkoutRequest.RoomNo} against customer with CNIC {checkoutRequest.Cnic}.");
             }
-            return Ok(new { message = "Booking ended successfully", roomNo = bookingRequest.RoomNo, bookingRequest.Cnic, checkoutDate = bookingRequest.date });
+            return Ok(new { message = "Booking ended successfully", roomNo = checkoutRequest.RoomNo, checkoutRequest.Cnic, checkoutDate = checkoutRequest.CheckoutDate });
+        }
+
+        [Authorize]
+        [HttpPatch("cancel-booking")]
+        public async Task<IActionResult> CancelBooking(CancelBookingRequest cancelBookingRequest)
+        {
+            var isCanceled = await bookingService.CancelBookingAsync(cancelBookingRequest);
+            if (!isCanceled)
+            {
+                return BadRequest($"Error while canceling booking with Cnic: {cancelBookingRequest.Cnic} for  Room number: {cancelBookingRequest.RoomNo}");
+            }
+            return Ok($"Booking with Cnic: {cancelBookingRequest.Cnic} for  Room number: {cancelBookingRequest.RoomNo} has been canceled");
         }
 
         [Authorize]
@@ -50,6 +74,18 @@ namespace EF_Core.Controllers
                 return NotFound($"No bookings found for customer with CNIC {cnic}.");
             }
             return Ok(details);
+        }
+
+        [Authorize]
+        [HttpGet("unchecked-bookings")]
+        public async Task<IActionResult> GetUncheckedBookings()
+        {
+            var bookings = await bookingService.GetUncheckedBookingsAsync();
+            if (bookings == null || !bookings.Any())
+            {
+                return NotFound($"No bookings found that are still unchecked!");
+            }
+            return Ok(bookings);
         }
     }
 }

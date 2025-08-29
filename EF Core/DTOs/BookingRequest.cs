@@ -4,6 +4,7 @@
     {
         public required int RoomNo { get; set; }
         public required string Cnic { get; set; }
-        public required DateOnly date { get; set; }
+        public required DateOnly CheckinDate { get; set; }
+        public required int Duration { get; set; }
     }
 }
